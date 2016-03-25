@@ -1,6 +1,8 @@
 require 'rspec/core/rake_task'
 
---require ./spec/spec_helper.rb
+--require ./spec/example_matcher.rb
+
+#TOOD, figure out how to require this as-needed
 --require ./integration/integration_helper.rb
 
 --color
