@@ -71,10 +71,10 @@ RSpec::Matchers.define :match_example do |example_path|
       parsed_hash.merge!(parsed_hash.delete('$path_params'))
     end
 
-    actual_hash = if response.kind_of?(Hash)
-                    deep_stringify(response)
+    actual_hash = if actual.kind_of?(Hash)
+                    deep_stringify(actual)
                   else
-                    MultiJson.load(response.body)
+                    MultiJson.load(actual.body)
                   end
 
     expected_hash = expectify(parsed_hash)
