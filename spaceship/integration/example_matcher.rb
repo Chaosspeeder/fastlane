@@ -3,7 +3,7 @@ require 'multi_json'
 
 RSpec::Matchers.define :match_apple_ten_char_id do |example_path|
   match do |actual|
-    @opts = { color_enabled: RSpec::configuration.color_enabled? }
+    @opts = { color_enabled: RSpec.configuration.color_enabled? }
     @difference = DiffMatcher::Difference.new(/^[a-zA-Z0-9]{10}$/, actual, @opts)
     @difference.matching?
   end
@@ -15,7 +15,7 @@ end
 
 RSpec::Matchers.define :match_a_udid do |example_path|
   match do |actual|
-    @opts = { color_enabled: RSpec::configuration.color_enabled? }
+    @opts = { color_enabled: RSpec.configuration.color_enabled? }
     @difference = DiffMatcher::Difference.new(/^[a-fA-F0-9]{40}$/, actual, @opts)
     @difference.matching?
   end
@@ -26,21 +26,21 @@ RSpec::Matchers.define :match_a_udid do |example_path|
 end
 
 EXAMPLE_MATCHERS = {
-  'number' => lambda {|arg| arg.is_a? Fixnum},
-  'anything-or-empty' => lambda {|arg| /.*/ || (arg == nil)},
+  'number' => ->(arg) { arg.kind_of? Fixnum },
+  'anything-or-empty' => ->(arg) { /.*/ || arg.nil? },
   'apple-app-id' => /^[A-Z0-9]{10}$/,
-  'boolean' => lambda {|arg| arg.is_a?(TrueClass) || arg.is_a?(FalseClass)},
+  'boolean' => ->(arg) { arg.kind_of?(TrueClass) || arg.kind_of?(FalseClass) },
   'email' => /^[^@]+@\w+.\w+$/,
   'text' => /.+/,
   'anything' => /.*/,
-  'url' => /http[s]?:\/\/.*/,
+  'url' => %r{http[s]?://.*}
 }.freeze
 
 RSpec::Matchers.define :match_example do |example_path|
   def expectify(arg)
     case arg
     when /^\$(.*)/ then EXAMPLE_MATCHERS[$1]
-    when /^\/(.*)\/$/ then Regexp.new($1)
+    when %r{^/(.*)/$} then Regexp.new($1)
     when Array then arg.map {|el| expectify(el)}
     when Hash then {}.tap {|h| arg.each {|k, v| h[k] = expectify(v) } }
     else arg
@@ -50,9 +50,9 @@ RSpec::Matchers.define :match_example do |example_path|
   # JSON stuff is all strings, but params from Ruby can contain symbols
   def deep_stringify(hsh)
     hsh.each do |key, value|
-      if value.is_a?(Hash)
+      if value.kind_of?(Hash)
         deep_stringify(value)
-      elsif value.is_a?(Symbol)
+      elsif value.kind_of?(Symbol)
         hsh.delete[key]
         hsh[key.to_s] = value.to_s
       end
@@ -71,15 +71,15 @@ RSpec::Matchers.define :match_example do |example_path|
       parsed_hash.merge!(parsed_hash.delete('$path_params'))
     end
 
-    actual_hash = if response.is_a?(Hash)
-      deep_stringify(response)
-    else
-      MultiJson.load(response.body)
-    end
+    actual_hash = if response.kind_of?(Hash)
+                    deep_stringify(response)
+                  else
+                    MultiJson.load(response.body)
+                  end
 
     expected_hash = expectify(parsed_hash)
 
-    @opts = {:color_enabled=>RSpec::configuration.color_enabled?}
+    @opts = { color_enabled: RSpec.configuration.color_enabled? }
     @difference = DiffMatcher::Difference.new(expected_hash, actual_hash, @opts)
     @difference.matching?
   end

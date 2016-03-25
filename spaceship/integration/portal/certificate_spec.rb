@@ -26,7 +26,7 @@ describe Spaceship do
 
       it 'certificate creation and revokation work' do
         # Create a new certificate signing request
-        csr, _ = certificate.create_certificate_signing_request
+        csr, = certificate.create_certificate_signing_request
 
         # Use the signing request to create a new distribution certificate
         created_cert = certificate.production.create!(csr: csr)
