@@ -1,6 +1,30 @@
 require 'diff_matcher'
 require 'multi_json'
 
+RSpec::Matchers.define :match_apple_ten_char_id do |example_path|
+  match do |actual|
+    @opts = { color_enabled: RSpec::configuration.color_enabled? }
+    @difference = DiffMatcher::Difference.new(/^[a-zA-Z0-9]{10}$/, actual, @opts)
+    @difference.matching?
+  end
+
+  failure_message do |model|
+    @difference.to_s
+  end
+end
+
+RSpec::Matchers.define :match_a_udid do |example_path|
+  match do |actual|
+    @opts = { color_enabled: RSpec::configuration.color_enabled? }
+    @difference = DiffMatcher::Difference.new(/^[a-fA-F0-9]{40}$/, actual, @opts)
+    @difference.matching?
+  end
+
+  failure_message do |model|
+    @difference.to_s
+  end
+end
+
 EXAMPLE_MATCHERS = {
   'number' => lambda {|arg| arg.is_a? Fixnum},
   'anything-or-empty' => lambda {|arg| /.*/ || (arg == nil)},
@@ -13,7 +37,6 @@ EXAMPLE_MATCHERS = {
 }.freeze
 
 RSpec::Matchers.define :match_example do |example_path|
-
   def expectify(arg)
     case arg
     when /^\$(.*)/ then EXAMPLE_MATCHERS[$1]
@@ -38,7 +61,7 @@ RSpec::Matchers.define :match_example do |example_path|
     hsh
   end
 
-  match do |response|
+  match do |actual|
     expected = File.read(File.join(File.expand_path("../../", __FILE__), '/', example_path))
 
     parsed_hash = MultiJson.load(expected)
@@ -61,7 +84,7 @@ RSpec::Matchers.define :match_example do |example_path|
     @difference.matching?
   end
 
-  failure_message_for_should do |model|
+  failure_message do |model|
     @difference.to_s
   end
 end

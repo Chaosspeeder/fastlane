@@ -38,6 +38,7 @@ Gem::Specification.new do |spec|
 
   # Development only
   spec.add_development_dependency 'pry'
+  spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'fastlane', ">= 1.15.0" # yes, we use fastlane to test fastlane
   spec.add_development_dependency 'rake'
